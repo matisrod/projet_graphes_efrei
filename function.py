@@ -1,4 +1,5 @@
 from collections import defaultdict
+from collections import deque
 import csv
 
 def build_graph_from_csv(path, directed: bool = False) -> dict:
@@ -20,3 +21,19 @@ def build_graph_from_csv(path, directed: bool = False) -> dict:
                 adj[v][u] = w
     # cast en dict "pur"
     return {node: dict(neigh) for node, neigh in adj.items()}
+
+
+def bfs(graphe,sommet_depart):
+    visited = set()
+    queue = deque([sommet_depart])
+    print("BFS : ")
+    while queue:
+        node = queue.popleft()
+        if node not in visited:
+            visited.add(node)
+            print(node, end = ' ')
+            bfs = queue.extend(voisin for voisin in graphe[node] if voisin not in visited)
+    return bfs
+#def dfs(graphe,sommet_depart):
+    
+    
