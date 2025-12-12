@@ -5,8 +5,8 @@ if __name__ == "__main__":
     for x in dico:
         print(f"{x} : {dico[x]}")
     print('\n-----------------Algo-----------\n')
-    
-    bfs = f.bfs(dico,"Paris")
+    ville_reference = "Paris"
+    bfs = f.bfs(dico,ville_reference)
     print(bfs)
     
     
