@@ -8,5 +8,6 @@ if __name__ == "__main__":
     ville_reference = "Paris"
     bfs = f.bfs(dico,ville_reference)
     print(bfs)
+    print("DFS")
     
     

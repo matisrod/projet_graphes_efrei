@@ -34,6 +34,12 @@ def bfs(graphe,sommet_depart):
             print(node, end = ' -> ')
             bfs = queue.extend(voisin for voisin in graphe[node] if voisin not in visited)
     return bfs
-#def dfs(graphe,sommet_depart):
+
+def dfs(graphe,sommet,visited):
+    if sommet not in visited:
+        print(sommet,end='->')
+        visited.add(sommet)
+        for voisin in graphe[sommet]:
+            dfs(graphe,voisin,visited)
     
     
