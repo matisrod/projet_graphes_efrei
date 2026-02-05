@@ -24,23 +24,77 @@ def build_graph_from_csv(path, directed: bool = False) -> dict:
     return {node: dict(neigh) for node, neigh in adj.items()}
 
 
+def prim(graph, start_node):
+    """
+    Algorithme de Prim.
+    Retourne une liste de tuples (u, v, poids).
+    """
+    mst_edges = []
+    visited = {start_node}
+    all_nodes = set(graph.keys())
 
-def bfs(graphe,sommet_depart):
-    visited = set()
-    queue = deque([sommet_depart])
-    print("BFS : ")
-    while queue:
-        node = queue.popleft()
-        if node not in visited:
-            visited.add(node)
-            print(node, end = ' -> ')
-            bfs = queue.extend(voisin for voisin in graphe[node] if voisin not in visited)
-    return bfs
+    while len(visited) < len(all_nodes):
+        min_edge = None
+        min_weight = float('inf')
 
-def dfs(graphe,sommet,visited):
-    if sommet not in visited:
-        print(sommet)
-        visited.add(sommet)
-        for voisin in graphe[sommet]:
-            dfs(graphe,sommet,visited)
+        for u in visited:
+            # --- CORRECTION ICI : ajout de .items() ---
+            for v, weight in graph[u].items():
+                if v not in visited:
+                    if weight < min_weight:
+                        min_weight = weight
+                        min_edge = (u, v, weight)
+        
+        if min_edge:
+            u, v, w = min_edge
+            visited.add(v)
+            mst_edges.append(min_edge)
+        else:
+            break
+            
+    return mst_edges
+
+
+class UnionFind:
+    def __init__(self, elements):
+        self.parent = {e: e for e in elements}
+
+    def find(self, item):
+        if self.parent[item] != item:
+            self.parent[item] = self.find(self.parent[item])
+        return self.parent[item]
+
+    def union(self, a, b):
+        root_a = self.find(a)
+        root_b = self.find(b)
+        if root_a != root_b:
+            self.parent[root_b] = root_a
+            return True
+        return False
+
+def kruskal(graph):
+    """
+    Algorithme de Kruskal.
+    Retourne une liste de tuples (u, v, poids).
+    """
+    mst_edges = []
+    edges = []
+    seen_edges = set()
+
+    for u in graph:
+        # --- CORRECTION ICI : ajout de .items() ---
+        for v, w in graph[u].items():
+            edge_id = tuple(sorted((u, v)))
+            if edge_id not in seen_edges:
+                edges.append((w, u, v))
+                seen_edges.add(edge_id)
     
+    edges.sort() 
+
+    uf = UnionFind(graph.keys())
+    
+    for w, u, v in edges:
+        if uf.union(u, v):
+            mst_edges.append((u, v, w))
+            
+    return mst_edges
