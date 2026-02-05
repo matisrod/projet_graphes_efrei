@@ -9,5 +9,9 @@ if __name__ == "__main__":
     bfs = f.bfs(dico,ville_reference)
     print(bfs)
     print("DFS")
+    visited = set()
+    dfs = f.dfs(dico, ville_reference,visited)
+    print(dfs)
+    
     
     

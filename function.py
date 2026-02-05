@@ -5,22 +5,24 @@ import csv
 def build_graph_from_csv(path, directed: bool = False) -> dict:
     """
     Construit un dictionnaire d'adjacence pondéré à partir d'un CSV.
-    - path: chemin du fichier CSV (colonnes: Ville1, Ville2, Distance)
-    - directed: True pour un graphe orienté, False pour non orienté
     Retour: {noeud: {voisin: poids, ...}, ...}
     """
     adj = defaultdict(dict)
-    with open(path, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
+    # Encodage utf-8-sig pour gérer les BOM (caractères bizarres) parfois présents au début des CSV Excel
+    with open(path, newline="", encoding="utf-8-sig") as f: 
+        reader = csv.DictReader(f, delimiter=',') # Assurez-vous que le délimiteur correspond à votre CSV
         for row in reader:
+            # Sécurisation si des lignes vides traînent
+            if not row or not row.get("Ville1"): continue
+            
             u = row["Ville1"].strip()
             v = row["Ville2"].strip()
             w = float(row.get("Distance", 1))
             adj[u][v] = w
             if not directed:
                 adj[v][u] = w
-    # cast en dict "pur"
     return {node: dict(neigh) for node, neigh in adj.items()}
+
 
 
 def bfs(graphe,sommet_depart):
@@ -37,9 +39,8 @@ def bfs(graphe,sommet_depart):
 
 def dfs(graphe,sommet,visited):
     if sommet not in visited:
-        print(sommet,end='->')
+        print(sommet)
         visited.add(sommet)
         for voisin in graphe[sommet]:
-            dfs(graphe,voisin,visited)
-    
+            dfs(graphe,sommet,visited)
     
