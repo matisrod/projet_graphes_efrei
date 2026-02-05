@@ -2,6 +2,8 @@ from collections import defaultdict
 from collections import deque
 import csv
 
+
+
 def build_graph_from_csv(path, directed: bool = False) -> dict:
     """
     Construit un dictionnaire d'adjacence pondéré à partir d'un CSV.
@@ -22,6 +24,35 @@ def build_graph_from_csv(path, directed: bool = False) -> dict:
             if not directed:
                 adj[v][u] = w
     return {node: dict(neigh) for node, neigh in adj.items()}
+
+def formater_chemin(liste_villes):
+    #Transforme une liste ['A', 'B'] en 'A → B'
+    return " --> ".join(liste_villes)
+
+def bfs(graph, start):
+    visited = []
+    queue = deque([start])
+    
+    while queue:
+        vertex = queue.popleft()
+        if vertex not in visited:
+            visited.append(vertex)
+            #Ajoute les voisins non visités à la file
+            for neighbor in graph[vertex]:
+                if neighbor not in visited:
+                    queue.append(neighbor)
+    return formater_chemin(visited)
+
+def dfs(graph, start_node, visited=None):
+    if visited is None:
+        visited = []
+    
+    visited.append(start_node)
+    
+    for neighbor in graph[start_node]:
+        if neighbor not in visited:
+            dfs(graph, neighbor, visited)
+    return formater_chemin(visited)
 
 
 def prim(graph, start_node):

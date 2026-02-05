@@ -5,6 +5,22 @@ if __name__ == "__main__":
     for x in graph:
         print(f"{x} : {graph[x]}")
 
+    ville_reference = "Paris"
+    
+    print('\n-----------------BFS-----------\n')
+    ville_reference = "Paris"
+    bfs = f.bfs(graph, ville_reference)
+    print("BFS : ",bfs)
+    
+    print('\n-----------------DFS-----------\n')
+    dfs = f.dfs(graph, ville_reference)
+    print("DFS : ", dfs)
+
+    
+    
+    
+    
+    
     print("\n--- 2. Arbres Couvrant Minimum (MST) ---")
     prim_mst = f.prim(graph, 'Rennes')
     print(f"Prim (départ Rennes) - {len(prim_mst)} arêtes :")
