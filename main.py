@@ -2,38 +2,35 @@ import function as f
 
 if __name__ == "__main__":
     graph = f.build_graph_from_csv('graphe_villes.csv')
-    for x in graph:
-        print(f"{x} : {graph[x]}")
+    nodes = list(graph.keys())
+    print(nodes)
+    ville_reference = "Lille"
+    
+    # 2. Tests des Parcours
+    print(f"\n[PARCOURS] au départ de {ville_reference}:")
+    bfs_result = f.bfs(graph, ville_reference)
+    dfs_result = f.dfs(graph, ville_reference)
+    print(f"  BFS : {' --> '.join(bfs_result)}")
+    print(f"  DFS : {' --> '.join(dfs_result)}")
 
-    ville_reference = "Paris"
-    
-    print('\n-----------------BFS-----------\n')
-    ville_reference = "Paris"
-    bfs = f.bfs(graph, ville_reference)
-    print("BFS : ",bfs)
-    
-    print('\n-----------------DFS-----------\n')
-    dfs = f.dfs(graph, ville_reference)
-    print("DFS : ", dfs)
+    # 3. Arbres Couvrants Minimum (MST)
+    print("\n[ARBRES COUVRANTS MINIMUM] :")
+    print(f"  Prim (depuis {ville_reference}) : {f.prim(graph, ville_reference)}")
+    print(f"  Kruskal : {f.kruskal(graph)}")
 
+    # 4. Plus courts chemins (Dijkstra & Bellman-Ford)
+    print(f"\n[PLUS COURTS CHEMINS] au départ de {ville_reference}:")
     
+    d_dist, d_pred = f.dijkstra(graph, ville_reference)
+    print(f"  Dijkstra (Distances) : {d_dist}")
+    print(f"  Dijkstra (Prédécesseurs) : {d_pred}")
     
-    
-    
-    
-    print("\n--- 2. Arbres Couvrant Minimum (MST) ---")
-    prim_mst = f.prim(graph, 'Rennes')
-    print(f"Prim (départ Rennes) - {len(prim_mst)} arêtes :")
-    total_prim = 0
-    for u, v, w in prim_mst:
-        print(f"  - {u} -- {v} ({w} km)")
-        total_prim += w
-    print(f"  Coût Total Prim: {total_prim} km")
+    b_dist, b_pred = f.bellman_ford(graph, ville_reference)
+    print(f"  Bellman-Ford (Distances) : {b_dist}")
+    print(f"  Bellman-Ford (Prédécesseurs) : {b_pred}")
 
-    kruskal_mst = f.kruskal(graph)
-    print(f"\nKruskal (Global) - {len(kruskal_mst)} arêtes :")
-    total_kruskal = 0
-    for u, v, w in kruskal_mst:
-        print(f"  - {u} -- {v} ({w} km)")
-        total_kruskal += w
-    print(f"  Coût Total Kruskal: {total_kruskal} km")
+    # 5. Floyd-Warshall (Toutes paires)
+    print("\n[FLOYD-WARSHALL] (Matrice de distances entre toutes les villes) :")
+    fw_matrix = f.floyd_warshall(graph)
+    for ville_dep, destinations in fw_matrix.items():
+        print(f"  De {ville_dep} : {destinations}")
