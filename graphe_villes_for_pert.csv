@@ -1,0 +1,8 @@
+Ville1,Ville2,Distance
+Debut,Fondations,10
+Fondations,Murs,15
+Fondations,Plomberie,12
+Murs,Toiture,10
+Plomberie,Finitions,8
+Toiture,Finitions,5
+Finitions,Fin,0

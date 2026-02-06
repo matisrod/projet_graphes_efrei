@@ -2,6 +2,7 @@ import function as f
 
 if __name__ == "__main__":
     graph = f.build_graph_from_csv('graphe_villes.csv')
+    graph_oriented = f.build_graph_from_csv('graphe_villes_for_pert.csv', directed=True)
     nodes = list(graph.keys())
     print(nodes)
     ville_reference = "Lille"
@@ -34,3 +35,11 @@ if __name__ == "__main__":
     fw_matrix = f.floyd_warshall(graph)
     for ville_dep, destinations in fw_matrix.items():
         print(f"  De {ville_dep} : {destinations}")
+
+    # 5. Analyse PERT (Gestion de projet / Ordonnancement)
+    print("\n--- Analyse PERT (Ordonnancement) ---")
+    earliest_dates, order = f.pert_analysis(graph_oriented)
+    
+    print("Dates au plus tôt pour chaque étape :")
+    for node in order:
+        print(f"  - {node} : T={earliest_dates[node]}")

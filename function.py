@@ -1,6 +1,7 @@
 from collections import defaultdict
 from collections import deque
 import csv
+import heapq
 
 
 
@@ -40,6 +41,7 @@ def bfs(graph, start):
                 queue.append(neighbor)
     return visited
 
+
 def dfs(graph, start_node, visited=None):
     if visited is None:
         visited = []
@@ -74,19 +76,29 @@ def dijkstra(graph, start):
     distances = {node: float('inf') for node in graph}
     distances[start] = 0
     predecessors = {node: None for node in graph}
-    unvisited = set(graph.keys())
+    pq = [(0, start)]
 
-    while unvisited:
-        current = min(unvisited, key=lambda node: distances[node])
-        if distances[current] == float('inf'): break
+    while pq:
+        d, u = heapq.heappop(pq)
+        if d > distances[u]: continue
         
-        for neighbor, weight in graph.get(current, {}).items():
-            alternative = distances[current] + weight
-            if alternative < distances[neighbor]:
-                distances[neighbor] = alternative
-                predecessors[neighbor] = current
-        unvisited.remove(current)
+        for v, weight in graph.get(u, {}).items():
+            if distances[u] + weight < distances[v]:
+                distances[v] = distances[u] + weight
+                predecessors[v] = u
+                heapq.heappush(pq, (distances[v], v))
+    
     return distances, predecessors
+
+
+def get_path(predecessors, target):
+    """recré le path de dijkstra à partir des prédécesseurs."""
+    path = []
+    curr = target
+    while curr is not None:
+        path.append(curr)
+        curr = predecessors[curr]
+    return path[::-1]
 
 
 def kruskal(graph):
@@ -150,3 +162,43 @@ def floyd_warshall(graph):
                 if dist[i][j] > dist[i][k] + dist[k][j]:
                     dist[i][j] = dist[i][k] + dist[k][j]
     return dist
+
+
+def pert_analysis(graph):
+    # 1. Calcul des degrés entrants
+    in_degree = {u: 0 for u in graph}
+    for u in graph:
+        for v in graph[u]:
+            # Initialiser v s'il n'est pas clé du graphe (destination sans départ)
+            if v not in in_degree: in_degree[v] = 0
+            in_degree[v] += 1
+    
+    # 2. Files des noeuds sans dépendance
+    queue = deque([u for u in in_degree if in_degree[u] == 0])
+    topo_order = []
+    
+    while queue:
+        u = queue.popleft()
+        topo_order.append(u)
+        
+        if u in graph: # Vérifier si u a des voisins
+            for v in graph[u]:
+                in_degree[v] -= 1
+                if in_degree[v] == 0:
+                    queue.append(v)
+
+    # --- DETECTION DE CYCLE ---
+    # Si on n'a pas pu ordonner tous les noeuds, c'est qu'il y a un cycle
+    if len(topo_order) < len(in_degree):
+        print("ERREUR : Le graphe contient un cycle (boucle) ! PERT impossible.")
+        return {}, []
+
+    # 3. Calcul des dates au plus tôt
+    earliest_start = {u: 0 for u in in_degree}
+    for u in topo_order:
+        if u in graph:
+            for v, duration in graph[u].items():
+                if earliest_start[v] < earliest_start[u] + duration:
+                    earliest_start[v] = earliest_start[u] + duration
+                
+    return earliest_start, topo_order
