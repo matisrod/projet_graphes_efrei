@@ -22,11 +22,11 @@ if __name__ == "__main__":
     # 4. Plus courts chemins (Dijkstra & Bellman-Ford)
     print(f"\n[PLUS COURTS CHEMINS] au départ de {ville_reference}:")
     
-    d_dist, d_pred = f.dijkstra(graph, ville_reference)
+    d_dist, d_pred = f.dijkstra(graph, ville_reference,"Grenoble")
     print(f"  Dijkstra (Distances) : {d_dist}")
     print(f"  Dijkstra (Prédécesseurs) : {d_pred}")
     
-    b_dist, b_pred = f.bellman_ford(graph, ville_reference)
+    b_dist, b_pred = f.bellman_ford(graph, ville_reference, "Grenoble")
     print(f"  Bellman-Ford (Distances) : {b_dist}")
     print(f"  Bellman-Ford (Prédécesseurs) : {b_pred}")
 
@@ -38,8 +38,9 @@ if __name__ == "__main__":
 
     # 5. Analyse PERT (Gestion de projet / Ordonnancement)
     print("\n--- Analyse PERT (Ordonnancement) ---")
-    earliest_dates, order = f.pert_analysis(graph_oriented)
-    
-    print("Dates au plus tôt pour chaque étape :")
-    for node in order:
-        print(f"  - {node} : T={earliest_dates[node]}")
+    tot, tard, critique, fin = f.calculer_pert(graph_oriented)
+    print(f"\n--- RÉSULTATS PERT ---")
+    print(f"Durée totale : {fin}")
+    print(f"Dates au plus tôt : {tot}")
+    print(f"Dates au plus tard : {tard}")
+    print(f"Arêtes du chemin critique : {critique}")

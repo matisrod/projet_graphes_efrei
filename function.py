@@ -72,7 +72,7 @@ def prim(graph, start_node):
     return mst_edges
 
 
-def dijkstra(graph, start):
+def dijkstra(graph, start, end):
     distances = {node: float('inf') for node in graph}
     distances[start] = 0
     predecessors = {node: None for node in graph}
@@ -80,16 +80,26 @@ def dijkstra(graph, start):
 
     while pq:
         d, u = heapq.heappop(pq)
+
+        if u == end: break  # Optimisation : on s'arrête si on a atteint la destination
         if d > distances[u]: continue
-        
+
         for v, weight in graph.get(u, {}).items():
             if distances[u] + weight < distances[v]:
                 distances[v] = distances[u] + weight
                 predecessors[v] = u
                 heapq.heappush(pq, (distances[v], v))
-    
-    return distances, predecessors
 
+    # Reconstruction du chemin de la fin vers le début
+    path = []
+    current = end
+    if distances[end] != float('inf'):  # Si un chemin existe
+        while current is not None:
+            path.append(current)
+            current = predecessors[current]
+        path.reverse()  # On remet dans l'ordre Départ -> Arrivée
+
+    return path, distances[end]
 
 def get_path(predecessors, target):
     """recré le path de dijkstra à partir des prédécesseurs."""
@@ -126,36 +136,49 @@ def kruskal(graph):
     return mst_edges
 
 
-def bellman_ford(graph, start):
+def bellman_ford(graph, start, end):
     distances = {node: float('inf') for node in graph}
     distances[start] = 0
     predecessors = {node: None for node in graph}
-    
     nodes = list(graph.keys())
+
+    # Relaxation des arêtes n-1 fois
     for _ in range(len(nodes) - 1):
         for u in nodes:
-            for v, w in graph[u].items():
-                if distances[u] + w < distances[v]:
-                    distances[v] = distances[u] + w
+            for v, weight in graph.get(u, {}).items():
+                if distances[u] + weight < distances[v]:
+                    distances[v] = distances[u] + weight
                     predecessors[v] = u
-                    
-    for u in nodes:
-        for v, w in graph[u].items():
-            if distances[u] + w < distances[v]:
-                return "Cycle négatif détecté", None
 
-    return distances, predecessors
+    # Vérification des cycles négatifs
+    for u in nodes:
+        for v, weight in graph.get(u, {}).items():
+            if distances[u] + weight < distances[v]:
+                return None, "Cycle négatif détecté"
+
+    # Reconstruction du chemin
+    path = []
+    if distances[end] != float('inf'):
+        curr = end
+        while curr is not None:
+            path.append(curr)
+            curr = predecessors[curr]
+        path.reverse()
+
+    return path, distances[end]
 
 
 def floyd_warshall(graph):
     nodes = list(graph.keys())
-    dist = {n1: {n2: float('inf') for n2 in nodes} for n1 in nodes}
-    
-    for n in nodes:
-        dist[n][n] = 0
-        for neighbor, weight in graph[n].items():
-            dist[n][neighbor] = weight
-            
+    # Initialisation de la matrice
+    dist = {u: {v: float('inf') for v in nodes} for u in nodes}
+
+    for u in nodes:
+        dist[u][u] = 0
+        for v, weight in graph.get(u, {}).items():
+            dist[u][v] = weight
+
+    # Algorithme principal
     for k in nodes:
         for i in nodes:
             for j in nodes:
@@ -164,41 +187,41 @@ def floyd_warshall(graph):
     return dist
 
 
-def pert_analysis(graph):
-    # 1. Calcul des degrés entrants
-    in_degree = {u: 0 for u in graph}
-    for u in graph:
-        for v in graph[u]:
-            # Initialiser v s'il n'est pas clé du graphe (destination sans départ)
-            if v not in in_degree: in_degree[v] = 0
-            in_degree[v] += 1
-    
-    # 2. Files des noeuds sans dépendance
-    queue = deque([u for u in in_degree if in_degree[u] == 0])
-    topo_order = []
-    
-    while queue:
-        u = queue.popleft()
-        topo_order.append(u)
-        
-        if u in graph: # Vérifier si u a des voisins
-            for v in graph[u]:
-                in_degree[v] -= 1
-                if in_degree[v] == 0:
-                    queue.append(v)
+def calculer_pert(graph_pert):
+    # 1. Calcul des dates au plus tôt (Early start)
+    nodes = list(graph_pert.keys())
+    # On s'assure d'avoir tous les noeuds même ceux sans successeurs
+    all_nodes = set(nodes)
+    for neighbors in graph_pert.values():
+        all_nodes.update(neighbors.keys())
+    all_nodes = sorted(list(all_nodes))  # Simplification, un tri topo serait mieux
 
-    # --- DETECTION DE CYCLE ---
-    # Si on n'a pas pu ordonner tous les noeuds, c'est qu'il y a un cycle
-    if len(topo_order) < len(in_degree):
-        print("ERREUR : Le graphe contient un cycle (boucle) ! PERT impossible.")
-        return {}, []
+    au_plus_tot = {node: 0 for node in all_nodes}
 
-    # 3. Calcul des dates au plus tôt
-    earliest_start = {u: 0 for u in in_degree}
-    for u in topo_order:
-        if u in graph:
-            for v, duration in graph[u].items():
-                if earliest_start[v] < earliest_start[u] + duration:
-                    earliest_start[v] = earliest_start[u] + duration
-                
-    return earliest_start, topo_order
+    # On parcourt plusieurs fois pour propager les durées (méthode simplifiée)
+    for _ in range(len(all_nodes)):
+        for u in graph_pert:
+            for v, weight in graph_pert[u].items():
+                if au_plus_tot[v] < au_plus_tot[u] + weight:
+                    au_plus_tot[v] = au_plus_tot[u] + weight
+
+    # 2. Calcul des dates au plus tard (Late start)
+    fin_projet = max(au_plus_tot.values())
+    au_plus_tard = {node: fin_projet for node in all_nodes}
+
+    for _ in range(len(all_nodes)):
+        for u in graph_pert:
+            for v, weight in graph_pert[u].items():
+                # date au plus tard de u = min(tard de v - durée u->v)
+                if au_plus_tard[u] > au_plus_tard[v] - weight:
+                    au_plus_tard[u] = au_plus_tard[v] - weight
+
+    # 3. Identification du chemin critique (marge = 0)
+    chemin_critique = []
+    for u in graph_pert:
+        for v, weight in graph_pert[u].items():
+            if au_plus_tot[u] == au_plus_tard[u] and au_plus_tot[v] == au_plus_tard[v] and (
+                    au_plus_tot[v] - au_plus_tot[u] == weight):
+                chemin_critique.append((u, v))
+
+    return au_plus_tot, au_plus_tard, chemin_critique, fin_projet
